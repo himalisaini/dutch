@@ -1,64 +1,47 @@
-# Dutch 🧾
+# Dutch
 
-An interactive OCR receipt scanner that turns splitting a group bill into a 30-second tap game. Snap a photo of the receipt, tap the items you had, and get a fair, tax/tip-adjusted breakdown per person.
+Dutch is a small app for splitting a restaurant bill. Take a photo of the receipt, tap what you had, and it works out who owes what, including tax and tip.
 
-## Stack (all free)
+## Screenshots
 
-- **Frontend**: TanStack Start (React + Vite + file-based router), Tailwind CSS — UI generated via Lovable, installable as a PWA
-- **OCR / parsing**: Gemini API free tier — vision model prompted to return structured JSON (`[{item, price, qty}]`) directly from the receipt photo, called from a server route so the API key never reaches the client
-- **State**: local client store (`src/lib/dutch-store.ts`) — no database, no backend beyond the OCR proxy
-- **Hosting**: Cloudflare Pages / Vercel / Netlify free tier (Nitro build already targets Cloudflare by default)
-- **Scope for v1**: pass-the-phone only (single device, no live multi-device sync)
+| Welcome | Capture | Claim | Summary |
+| --- | --- | --- | --- |
+| ![Welcome screen](screenshots/welcome.png) | ![Capture screen](screenshots/capture.png) | ![Claim screen](screenshots/claim.png) | ![Summary screen](screenshots/summary.png) |
 
-## Core flow
+## How it works
 
-1. **Capture** (`/capture`) — take or upload a photo of the receipt
-2. **Parse** (`/parsing`) — send image to Gemini, get back structured JSON of items/qty/price + subtotal, tax, tip; currently loads a demo receipt (`dutchStore.loadDemoParsedReceipt`) — real OCR wiring is next
-3. **Claim** (`/claim`) — items render as tappable "bubbles"; select a person, tap items to claim/split them; "Split remaining evenly" for shared items nobody claimed
-4. **Summary** (`/summary`) — proportional tax/tip math already implemented in `computeTotals()`:
-   `individualTotal = individualSubtotal * (billTotal / subtotal)`, per-person cards with a copy-to-clipboard breakdown
+1. Take a photo of the receipt, or upload one from your gallery.
+2. The app reads it with Gemini and pulls out each item and price.
+3. Pick yourself from the people list, then tap the items you had. Shared items split automatically between whoever taps them.
+4. See the final breakdown, with tax and tip divided fairly based on what each person actually ordered.
 
-Real receipts are parsed by `POST /api/parse-receipt` (`src/routes/api.parse-receipt.ts`), a server route that calls the Gemini API with the photo and a JSON-schema prompt, using `GEMINI_API_KEY` from the server environment — the key never reaches the browser. If no key is set, or parsing fails, it falls back to the demo receipt so the app never dead-ends.
+If a line has more than one of something, like two glasses of wine, you can split it into separate items so two people can each claim their own instead of splitting the cost down the middle.
 
-## Project structure
+You can also edit a price by hand, add an item that wasn't on the receipt, or add and remove people as needed.
 
-```
-dutch/
-  src/
-    routes/            # index (welcome), capture, parsing, claim, summary — TanStack file-based routes
-    components/
-      PhoneShell.tsx    # mobile-frame wrapper + Avatar component
-      ui/                # shadcn/radix primitives
-    lib/
-      dutch-store.ts      # people, items, claims, totals — the whole app state + computeTotals()
-    server.ts              # SSR entry (error-wrapped), where a Gemini OCR server route will live
-  public/
-    manifest.webmanifest    # PWA manifest (already configured: name, icons, theme color)
-    icon-512.png
-  vite.config.ts             # Lovable/TanStack config, Nitro build targets Cloudflare by default
-```
-
-## Status
-
-- [x] UI shell — all 5 screens built and wired to local state (via Lovable)
-- [x] Bill state model + proportional tax/tip math (`src/lib/dutch-store.ts`)
-- [x] PWA manifest + icons
-- [x] Real Gemini OCR integration (`/api/parse-receipt` server route, wired into `/parsing`, with demo fallback)
-- [x] `.env` / `GEMINI_API_KEY` wiring (`.env.example` — copy to `.env` and add your key)
-- [ ] Service worker / offline shell (`vite-plugin-pwa` or Nitro equivalent)
-- [ ] Deploy to free hosting
-
-## Running locally
-
-This project uses **bun** (see `bun.lock`, `bunfig.toml`):
+## Running it locally
 
 ```bash
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
-## Open questions
+You'll need a free Gemini API key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Copy `.env.example` to `.env` and add it there:
 
-- Where do people's names/avatars come from — typed in manually before claiming (current UI: add-on-the-fly via the "+" chip in the people tray)?
-- Should "Split Remaining" divide only among people who already claimed *something*, or everyone in the session? (currently: splits across everyone in `state.people`)
-- Any preference for how tip is entered if it's not itemized/printed on the receipt (e.g. no tip line yet because it's added after)?
+```
+GEMINI_API_KEY=your-key-here
+```
+
+Without a key, the app still works using a built-in demo receipt.
+
+## Built with
+
+- TanStack Start (React, Vite)
+- Gemini for reading receipts
+- Tailwind CSS
+
+It's installable as a PWA on both iOS and Android, and everything runs on free tiers.
+
+## Notes
+
+Bill data is saved to your browser's local storage, so it's still there if you close the tab or refresh. There's no account and no server-side database, everything stays on your device except the photo sent to Gemini for reading the receipt.
