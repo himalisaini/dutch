@@ -34,16 +34,13 @@ function Welcome() {
           </p>
         </div>
 
-        <div className="w-full space-y-3 safe-bottom">
+        <div className="w-full safe-bottom">
           <Link
             to="/capture"
             className="flex h-14 w-full items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-primary-foreground shadow-lg shadow-primary/25 active:scale-[0.98] transition-transform"
           >
             Get Started
           </Link>
-          <p className="text-center text-xs text-muted-foreground">
-            No accounts. No math. No awkward Venmo requests.
-          </p>
         </div>
       </div>
     </PhoneShell>

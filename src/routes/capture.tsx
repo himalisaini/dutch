@@ -86,7 +86,7 @@ function Capture() {
             </button>
 
             <button
-              onClick={skipDemo}
+              onClick={() => cameraRef.current?.click()}
               className="grid h-20 w-20 place-items-center rounded-full bg-primary ring-4 ring-white/20 active:scale-95 transition"
               aria-label="Take photo of receipt"
             >
