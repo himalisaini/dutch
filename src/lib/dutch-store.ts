@@ -292,3 +292,25 @@ export function computeTotals(s: DutchState) {
   });
   return { subtotal, tax: s.tax, tip: s.tip, total: subtotal + s.tax + s.tip, totals };
 }
+
+// Deliberately not part of DutchState/localStorage — a one-shot banner
+// message for when receipt parsing fails and falls back to the demo bill,
+// so that fallback is visible instead of silently pretending to be real data.
+let lastParseError: string | null = null;
+const parseErrorListeners = new Set<() => void>();
+
+export const parseErrorStore = {
+  set: (message: string | null) => {
+    lastParseError = message;
+    parseErrorListeners.forEach((l) => l());
+  },
+  subscribe: (l: () => void) => {
+    parseErrorListeners.add(l);
+    return () => parseErrorListeners.delete(l);
+  },
+  get: () => lastParseError,
+};
+
+export function useParseError(): string | null {
+  return useSyncExternalStore(parseErrorStore.subscribe, parseErrorStore.get, () => null);
+}

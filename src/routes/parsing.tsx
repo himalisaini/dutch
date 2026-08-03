@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PhoneShell } from "@/components/PhoneShell";
-import { dutchStore, useDutch } from "@/lib/dutch-store";
+import { dutchStore, useDutch, parseErrorStore } from "@/lib/dutch-store";
 
 export const Route = createFileRoute("/parsing")({
   head: () => ({
@@ -44,12 +44,20 @@ function Parsing() {
           const data = await res.json();
           if (!res.ok) throw new Error(data?.error ?? "Failed to parse receipt.");
           if (cancelled) return;
+          parseErrorStore.set(null);
           dutchStore.setParsedReceipt(data);
           navigate({ to: "/claim" });
           return;
         } catch (err) {
           console.error("Receipt parsing failed, falling back to demo:", err);
+          if (!cancelled) {
+            parseErrorStore.set(
+              "Couldn't read that receipt, so here's a demo bill instead. Try retaking the photo with better lighting, or a straighter angle.",
+            );
+          }
         }
+      } else {
+        parseErrorStore.set(null);
       }
       if (cancelled) return;
       dutchStore.loadDemoParsedReceipt();

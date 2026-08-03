@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Shuffle, X, Pencil, SplitSquareHorizontal } from "lucide-react";
+import { Plus, Shuffle, X, Pencil, SplitSquareHorizontal, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { PhoneShell, Avatar } from "@/components/PhoneShell";
-import { dutchStore, useDutch, computeTotals, initials, formatMoney } from "@/lib/dutch-store";
+import { dutchStore, useDutch, computeTotals, initials, formatMoney, useParseError, parseErrorStore } from "@/lib/dutch-store";
 
 export const Route = createFileRoute("/claim")({
   head: () => ({
@@ -32,6 +32,7 @@ function Claim() {
   const [newItemPrice, setNewItemPrice] = useState("");
 
   const selectedTotal = totals.find((t) => t.person.id === selectedId)?.subtotal ?? 0;
+  const parseError = useParseError();
 
   const startEditingPrice = (itemId: string, price: number) => {
     setEditingItemId(itemId);
@@ -71,6 +72,20 @@ function Claim() {
             Pick yourself, then tap items you ordered.
           </p>
         </div>
+
+        {parseError && (
+          <div className="mx-5 mt-3 flex items-start gap-2 rounded-2xl bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p className="flex-1">{parseError}</p>
+            <button
+              onClick={() => parseErrorStore.set(null)}
+              aria-label="Dismiss"
+              className="shrink-0 text-destructive/70"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* People tray */}
         <div className="mt-4 px-5">

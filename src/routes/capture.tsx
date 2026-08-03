@@ -16,19 +16,49 @@ export const Route = createFileRoute("/capture")({
   component: Capture,
 });
 
+// Real phone photos are routinely 3-10MB, which is well past what a
+// serverless function body limit (and Gemini's own request size) can take
+// comfortably. Downscale + re-encode as JPEG client-side before upload so
+// parsing actually gets attempted instead of silently failing on payload size.
+const MAX_DIMENSION = 1600;
+const JPEG_QUALITY = 0.82;
+
+async function resizeImageToDataUrl(file: File): Promise<string> {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("no 2d context");
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+  } catch {
+    // Fallback for browsers without createImageBitmap/canvas support: use the
+    // original file as-is rather than blocking capture entirely.
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+}
+
 function Capture() {
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  const onFile = (file: File | null) => {
+  const onFile = async (file: File | null) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      dutchStore.setReceipt(reader.result as string);
-      navigate({ to: "/parsing" });
-    };
-    reader.readAsDataURL(file);
+    const dataUrl = await resizeImageToDataUrl(file);
+    dutchStore.setReceipt(dataUrl);
+    navigate({ to: "/parsing" });
   };
 
   const skipDemo = () => {
@@ -115,7 +145,6 @@ function Capture() {
             ref={cameraRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={(e) => onFile(e.target.files?.[0] ?? null)}
           />
