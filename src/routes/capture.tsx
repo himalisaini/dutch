@@ -67,76 +67,45 @@ function Capture() {
   };
 
   return (
-    <PhoneShell className="bg-neutral-950 text-white">
-      <div className="relative flex flex-1 flex-col">
-        {/* Faux viewfinder */}
-        <div className="relative flex-1 overflow-hidden bg-neutral-900">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.08),transparent_60%)]" />
-          {/* Framing brackets */}
-          <div className="absolute inset-x-8 top-24 bottom-40">
-            <Corner className="left-0 top-0" />
-            <Corner className="right-0 top-0 rotate-90" />
-            <Corner className="left-0 bottom-0 -rotate-90" />
-            <Corner className="right-0 bottom-0 rotate-180" />
-            <div className="absolute inset-0 grid place-items-center">
-              <div className="text-center">
-                <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white/10 backdrop-blur">
-                  <Camera className="h-8 w-8" />
-                </div>
-                <p className="mt-4 text-sm text-white/70">Line up the receipt inside the frame</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Top bar */}
-          <div className="safe-top absolute inset-x-0 top-0 flex items-center justify-between px-4">
-            <Link
-              to="/"
-              className="grid h-10 w-10 place-items-center rounded-full bg-black/40 backdrop-blur"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </Link>
-            <span className="text-sm font-medium text-white/80">New split</span>
-            <div className="h-10 w-10" />
-          </div>
+    <PhoneShell>
+      <div className="safe-top flex flex-1 flex-col px-6">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/"
+            className="grid h-10 w-10 place-items-center rounded-full bg-surface"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </Link>
+          <span className="text-sm font-medium text-muted-foreground">New split</span>
+          <div className="h-10 w-10" />
         </div>
 
-        {/* Controls */}
-        <div className="safe-bottom bg-neutral-950 px-6 pt-6">
-          <div className="flex items-center justify-around">
-            <button
-              onClick={() => galleryRef.current?.click()}
-              className="flex flex-col items-center gap-1 text-white/80"
-            >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10">
-                <ImagePlus className="h-5 w-5" />
-              </div>
-              <span className="text-xs">Gallery</span>
-            </button>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+          <button
+            onClick={() => cameraRef.current?.click()}
+            aria-label="Take photo of receipt"
+            className="grid h-28 w-28 place-items-center rounded-full bg-primary shadow-lg shadow-primary/30 ring-8 ring-primary/10 active:scale-95 transition"
+          >
+            <Camera className="h-11 w-11 text-primary-foreground" />
+          </button>
+          <p className="mt-2 text-lg font-semibold">Take a photo of the receipt</p>
+          <p className="max-w-[240px] text-sm text-muted-foreground">
+            Make sure it's well lit and laid flat so every item is easy to read.
+          </p>
+        </div>
 
-            <button
-              onClick={() => cameraRef.current?.click()}
-              className="grid h-20 w-20 place-items-center rounded-full bg-primary ring-4 ring-white/20 active:scale-95 transition"
-              aria-label="Take photo of receipt"
-            >
-              <Camera className="h-7 w-7 text-primary-foreground" />
-            </button>
-
-            <button
-              onClick={() => cameraRef.current?.click()}
-              className="flex flex-col items-center gap-1 text-white/80"
-            >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10">
-                <Camera className="h-5 w-5" />
-              </div>
-              <span className="text-xs">Camera</span>
-            </button>
-          </div>
-
+        <div className="safe-bottom space-y-3 pb-2">
+          <button
+            onClick={() => galleryRef.current?.click()}
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-surface text-base font-semibold active:scale-[0.98] transition-transform"
+          >
+            <ImagePlus className="h-5 w-5" />
+            Choose from gallery
+          </button>
           <button
             onClick={skipDemo}
-            className="mt-5 w-full rounded-2xl bg-white/10 py-3 text-sm font-medium text-white/90 active:scale-[0.98] transition"
+            className="w-full rounded-2xl py-3 text-sm font-medium text-muted-foreground active:scale-[0.98] transition"
           >
             Continue with demo receipt →
           </button>
@@ -158,14 +127,5 @@ function Capture() {
         </div>
       </div>
     </PhoneShell>
-  );
-}
-
-function Corner({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={`absolute h-8 w-8 border-primary ${className}`}
-      style={{ borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 12 }}
-    />
   );
 }
